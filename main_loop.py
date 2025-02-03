@@ -1,4 +1,6 @@
 import os, numpy, time, json, networkx, math
+import libsbml
+from libsbml import *
 
 #---
 # 
@@ -46,6 +48,14 @@ def run_program (file_path, file_name,directory_path, r):
         print(f"{BOLD}\tExtracted biomodel: {RESET}{BLUE} {file_name}{RESET}")
         #Read the sbml file and extract the model
         sbml_model, sbml_document = get_model(file_path)
+        
+
+                
+
+
+
+
+
         os.makedirs(directory_path, exist_ok=True)
         f = open(directory_path + os.sep + f"Data_r={r}.csv", "a")
         f.write(f"Biomodel name, Number of species, Number of reactions, Number of edges, Number of blocks(r={r}), Entropy (r={r}), Hierarchy (r={r}), Number of levels(r={r}), Execution time(r={r})\n")
@@ -161,10 +171,23 @@ def run_program (file_path, file_name,directory_path, r):
         # print(len(complete))
 
 
+        sbml_document.setLevelAndVersion(3,1)
+        
+        model = sbml_document.getModel()
+        print ("extension=", model.getLevel())
+        sbml_document.enablePackage(libsbml.GroupsExtension.getXmlnsL3V1V1(), 'groups', True)
+        mplugins = model.getPlugin("groups")
+
+        print(model.getPlugin("groups"))
         # Write each sublist to text file
         with open(os.path.join(directory_path, f"{file_name}_r={r}.txt"), "w") as file:
             for i, sublist in enumerate(complete_r_blocks, start=1):
                 file.write(f"Group {i} = " + ", ".join(sublist) + "\n\n")  
+                group = mplugins.createGroup()
+                group.setId (f"group_{i}")
+                for item in sublist:
+                    member = group.createMember()
+                    member.setIdRef(item)
 
         for i in range(len(complete_r_blocks)):
             item = complete_r_blocks[i]

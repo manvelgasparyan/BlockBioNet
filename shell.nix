@@ -1,13 +1,28 @@
 let
   pkgs = import <nixpkgs> {};
-  pkgs_list = with pkgs.python3.pkgs; 
-  	      [libsbml 
+  pkgs_list = with pkgs.python312.pkgs; 
+  	      [
+	      pip
 	      numpy
 	      matplotlib
 	      networkx];
+  libsbmlCustom = pkgs.libsbml.overrideAttrs (oldAttrs: {
+    cmakeFlags = (oldAttrs.cmakeFlags or []) ++ [
+		      #"-DWITH_GROUPS=ON"
+		      #"-DWITH_COMP=ON"
+		      #"-DWITH_FBC=ON"
+		      #"-DWITH_LAYOUT=ON"
+			"-DWITH_STABLE_PACKAGES=ON"
+		    ];
+     #withPython = true;
+  });
+  #mylibsbml = pkgs.callPackage ./libsbml/libsbml.nix {};
 in pkgs.mkShell {
   buildInputs = [
     pkgs.python3
+    pkgs.libxml2
+    pkgs.libz
+    #mylibsbml
   ] ++ pkgs_list;
   shellHook = ''
     # Tells pip to put packages into $PIP_PREFIX instead of the usual locations.
