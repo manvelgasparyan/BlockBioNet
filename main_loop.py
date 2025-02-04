@@ -174,7 +174,6 @@ def run_program (file_path, file_name,directory_path, r):
         sbml_document.setLevelAndVersion(3,1)
         
         model = sbml_document.getModel()
-        print ("extension=", model.getLevel())
         sbml_document.enablePackage(libsbml.GroupsExtension.getXmlnsL3V1V1(), 'groups', True)
         mplugins = model.getPlugin("groups")
 
@@ -188,7 +187,7 @@ def run_program (file_path, file_name,directory_path, r):
                 for item in sublist:
                     member = group.createMember()
                     member.setIdRef(item)
-
+        writeSBML(sbml_document,f"{directory_path}/{file_name}_grouped.sbml")
         for i in range(len(complete_r_blocks)):
             item = complete_r_blocks[i]
             phrase = f"Number of species in group {i+1}: {len(item)}"
