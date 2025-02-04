@@ -184,6 +184,7 @@ def run_program (file_path, file_name,directory_path, r):
                 file.write(f"Group {i} = " + ", ".join(sublist) + "\n\n")  
                 group = mplugins.createGroup()
                 group.setId (f"group_{i}")
+                group.setKind("classification")
                 for item in sublist:
                     member = group.createMember()
                     member.setIdRef(item)
