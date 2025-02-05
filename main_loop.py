@@ -190,10 +190,7 @@ def run_program (file_path, file_name,directory_path, r):
                     member = group.createMember()
                     member.setIdRef(item)
         writeSBML(sbml_document,f"{directory_path}/{file_name}_grouped.xml")
-        for i in range(len(complete_r_blocks)):
-            item = complete_r_blocks[i]
-            phrase = f"Number of species in group {i+1}: {len(item)}"
-            print(phrase)
+
 
 
         f.close()
