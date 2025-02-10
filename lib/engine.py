@@ -340,9 +340,15 @@ def r_blocks (G, r, sbml_model):
         group_reaction = []
         for reaction in reactions_ids:
             reactants = {reactant.getSpecies() for reactant in sbml_model.getReaction(reaction).getListOfReactants()}
-            result = any(species in reactants for species in group_species)
-            if result:
-               group_reaction.append(reaction) 
+            products = {product.getSpecies() for product in sbml_model.getReaction(reaction).getListOfProducts()}
+            result_1 = any(species in reactants for species in group_species)
+            if result_1:
+                group_reaction.append(reaction)              
+            else:
+                result_2 = any(species in products for species in group_species)
+                if result_2:
+                   group_reaction.append(reaction)  
+        #-------                 
         complete_r_blocks_reactions_ids.append(group_reaction)
     #===========
     reactions_name_to_id = {reaction.getName(): reaction.getId() for reaction in sbml_model.getListOfReactions()}

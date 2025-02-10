@@ -146,10 +146,14 @@ def save_to_files (sbml_model, directory_path, file_name, species_names, species
 def add_groups_sbml (sbml_document, directory_path, file_name, complete_r_block_ids, r):
         #------------
         sbml_document.setLevelAndVersion(3,1,strict=False)
+        
         #------------
-        model = sbml_document.getModel()
+        
         sbml_document.enablePackage(libsbml.GroupsExtension.getXmlnsL3V1V1(), 'groups', True)
+        sbml_document.setPkgRequired('groups', False)
+        model = sbml_document.getModel()
         mplugins = model.getPlugin("groups")
+        
         #------------
         with open(os.path.join(directory_path, f"{file_name}_r={r}.txt"), "w") as file:
             for i, sublist in enumerate(complete_r_block_ids, start=1):

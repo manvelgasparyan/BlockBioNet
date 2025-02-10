@@ -50,7 +50,7 @@ def run_program (file_path, file_name, directory_path, r, f):
         #Get interaction graph
         G = interaction_graph(sbml_model)
         #===========
-        r_blocks_ind, r_blocks_species_names,  complete_r_blocks_species_names, complete_r_blocks_species_ids, complete_r_blocks_reactions_ids, complete_r_blocks_reactions_names, complete_r_blocks_names, complete_r_blocks_ids, Q = r_blocks (G, r, sbml_model)
+        r_blocks_ind, r_blocks_species_names,  complete_r_blocks_species_names, complete_r_blocks_species_ids, complete_r_blocks_reactions_ids, complete_r_blocks_reactions_names, complete_r_blocks_ids, complete_r_blocks_names, Q = r_blocks (G, r, sbml_model)
         #===========
         AP_species_index, AP_species_names, AP_species_ids, hierarchy = autonomous_pairs_general (Q, species_names, r_blocks_species_names, r_blocks_ind, sbml_model)
         #===========
