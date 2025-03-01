@@ -10,12 +10,18 @@ and structure manageable network modules.
 How to use this tool:
 
 Launch main_UI
+
 Select a SBML file  
+
 Select an output directory
+
 Select a value of r, the reachability radius. 
+
 The code outputs: 
-model_r=x.xml a level 3 SBML file containing the blocks of the decomposition as groups
-model_r=x.json a json file that includes the description of the interaction graph, the r-reachability 
+
+model_r=x.xml - a level 3 SBML file containing the blocks of the decomposition as groups
+
+model_r=x.json - a json file that includes the description of the interaction graph, the r-reachability 
 graph (quotient graph), the description of the r-blocks (r-SCC components),  the description of the
 autonomous pairs 
 
@@ -23,6 +29,7 @@ The hierarchical block decomposition can be visualized using CRNPlot https://git
 using model_r=x.xml as input
 
 How to cite this tool:
+
 Manvel Gasparyan, Satya Tamby, G.V. HarshaRani, Upinder S. Bhalla, and Ovidiu Radulescu
 Automated hierarchical block decomposition of biochemical networks
 
