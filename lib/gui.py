@@ -158,9 +158,12 @@ def add_groups_sbml (sbml_document, directory_path, file_name, complete_r_block_
                 group.setId (f"group_{i}")
                 group.setName(f"group{i}")
                 group.setKind("collection")
+                print ("group ",i, ":")
                 for item in sublist:
                     member = group.createMember()
                     member.setIdRef(item)
+                    print ("\t",item)
+
         #------------
         writeSBML(sbml_document,f"{directory_path}/{file_name}_decomposition_r={r}.xml")
         #------------

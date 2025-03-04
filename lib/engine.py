@@ -302,7 +302,7 @@ def autonomous_pairs_general (Q, species_names, r_sccs_species, r_sccs_index, mo
 #=======================================================================================================================
 def r_blocks (G, r, sbml_model):
     #===========
-    species_names = [species.getName() for species in sbml_model.getListOfSpecies()]
+    species_names = [species.getId() for species in sbml_model.getListOfSpecies()]
     #===========
     if r == float('inf'):
         sccs_index, sccs_species_names = get_strongly_connected_components (G, species_names)
