@@ -12,7 +12,7 @@ and structure manageable network modules.
 
 ## Command Line Interface
 
-Use the following command to compute the decomposition of `input_sbml.xml` and stores every output file formats in the directory `output_dir`.
+Use the following command to compute the decomposition of `input_sbml.xml` and stores every output file formats in the directory `output_dir`. In this example, the reachability radius is $1$.
 
 ```bash
 python main_cli.py input_sbml.xml output_dir results.csv 1
