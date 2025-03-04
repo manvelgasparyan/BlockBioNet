@@ -7,7 +7,19 @@ networks. By using causality and information flow as organizing principles,
 the approach combines strongly connected components with r-causality to identify 
 and structure manageable network modules.
 
-How to use this tool:
+
+# Usage
+
+## Command Line Interface
+
+Use the following command to compute the decomposition of `input_sbml.xml` and stores every output file formats in the directory `output_dir`.
+
+```bash
+python main_cli.py input_sbml.xml output_dir results.csv 1
+```
+
+
+## Graphical Interface
 
 Launch main_UI
 
