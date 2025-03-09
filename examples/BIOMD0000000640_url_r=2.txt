@@ -1,0 +1,46 @@
+Group 1 = IR_beta, IR_beta_pY1146, IR_beta_refractory, reaction_4, reaction_5, reaction_6
+
+Group 2 = IRS, IRS_p, IRS_pS636, p70_S6K, p70_S6K_pT229, p70_S6K_pT389, p70_S6K_pT229_pT389, PI3K_PDK1, PI3K_p_PDK1, reaction_1, reaction_7, reaction_8, reaction_9, reaction_10, reaction_11, reaction_12, reaction_33, reaction_34, reaction_35, reaction_36, reaction_37, reaction_38, reaction_39, reaction_40
+
+Group 3 = AMPK_pT172, AMPK, reaction_2, reaction_15, reaction_16
+
+Group 4 = Akt, Akt_pT308, Akt_pS473, Akt_pT308_pS473, reaction_17, reaction_18, reaction_19, reaction_20, reaction_21, reaction_22, reaction_23, reaction_24
+
+Group 5 = TSC1_TSC2, TSC1_TSC2_pT1462, TSC1_TSC2_pS1387, reaction_25, reaction_26, reaction_27, reaction_28
+
+Group 6 = mTORC1, mTORC1_pS2448, reaction_29, reaction_30
+
+Group 7 = mTORC2, mTORC2_pS2481, reaction_3, reaction_31, reaction_32
+
+Group 8 = PRAS40, PRAS40_pT246, PRAS40_pS183, PRAS40_pT246_pS183, reaction_41, reaction_42, reaction_43, reaction_44, reaction_45, reaction_46, reaction_47, reaction_48
+
+Group 9 = PI3K_variant, PI3K_variant_p, reaction_13, reaction_14
+
+Group 10 = Insulin
+
+Group 11 = Amino_Acids
+
+Group 12 = IR_beta_pY1146_obs
+
+Group 13 = IRS_pS636_obs
+
+Group 14 = AMPK_pT172_obs
+
+Group 15 = Akt_pT308_obs
+
+Group 16 = Akt_pS473_obs
+
+Group 17 = TSC1_TSC2_pS1387_obs
+
+Group 18 = mTOR_pS2448_obs
+
+Group 19 = mTOR_pS2481_obs
+
+Group 20 = p70_S6K_pT229_obs
+
+Group 21 = p70_S6K_pT389_obs
+
+Group 22 = PRAS40_pT246_obs
+
+Group 23 = PRAS40_pS183_obs
+

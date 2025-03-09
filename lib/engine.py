@@ -44,20 +44,23 @@ def interaction_graph(model):
     #-------------------
     #Species and rates
     species = [species.getId() for species in model.getListOfSpecies()]
+    #-------------------
+    # Precompute constant status for species
     rates = [reaction.getKineticLaw().getFormula() if reaction.getKineticLaw() else None for reaction in model.getListOfReactions()]
     #-------------------
     #Number of species and reactions
     n_s = len(species)
     n_r = len(rates)
     #-------------------
+    species_constants = {i: model.getSpecies(i).getConstant() for i in range(n_s)}
+    #-------------------
     # Example usage:
     graph = networkx.DiGraph()
+    #-------------------    
+    graph.add_nodes_from([i+1 for i in range(n_s)])
     #-------------------
     # Initialize edges_G as a set for faster membership checks and unique pairs
     edges_G = set()
-    #-------------------
-    # Precompute constant status for species
-    species_constants = {i: model.getSpecies(i).getConstant() for i in range(n_s)}
     #-------------------
     # Precompute species usage in reactions
     species_usage = {
@@ -85,33 +88,17 @@ def interaction_graph(model):
 #=======================================================================================================================
 def mutual_r_reachability_graph (G, r):
     #---------------------------------------------
-    def shortest_path_length(G, u, v):
-        #---
-        if G.has_node(u) and G.has_node(v):
-           if u == v:
-              return 1 if G.has_edge(u, u) else 0
-           if networkx.has_path(G, u, v):
-              return len(networkx.shortest_path(G, u, v)) - 1
-        return 0 
-    #---------------------------------------------
-    def same_r_block(G, u, v, r):
-        #---
-        f_1 = shortest_path_length(G, u, v)
-        f_2 = shortest_path_length(G, v, u)
-        #---
-        if f_1 <= r and f_2 <= r and f_1*f_2 != 0:
-           return 1
-        else:
-           return 0 
-    #---------------------------------------------
     nodes_G = G.nodes()
     #---
     H = networkx.Graph()
     H.add_nodes_from(nodes_G)
+
+    spps = networkx.floyd_warshall(G)
+
     for u in nodes_G:
         for v in nodes_G:
-            f_uv = same_r_block(G, u, v, r)
-            if u != v and f_uv == 1 and not H.has_edge(u,v) and not H.has_edge(v,u):
+            f_uv = spps[u][v] <= r and spps[v][u] <= r 
+            if u != v and f_uv  and not H.has_edge(u,v) and not H.has_edge(v,u):
                H.add_edge(u, v)
     #---
     return H
@@ -232,28 +219,82 @@ def agony_scores(Q):
     #---
     return r_sccs_and_scores, hierarchy, r_sccs_scores
 #=======================================================================================================================
-def autonomous_pairs_species_cyclicQ (r_sccs_names, r_sccs_indices, r_sccs_scores):
+def r_blocks (G, r, sbml_model):
+    #===========
+    species_ids = [species.getId() for species in sbml_model.getListOfSpecies()]
+    constant_species = [species_ids[i1] for i1 in range(len(species_ids)) if sbml_model.getSpecies(i1).getConstant()]
+    #---
+    # species_ids = [species.getName() for species in sbml_model.getListOfSpecies()]
+    # constant_species = [sbml_model.getSpecies(i1).getName() for i1 in range(len(species_ids)) if sbml_model.getSpecies(i1).getConstant()]
+    #===========
+    if r == float('inf'):
+        sccs_index, sccs_species_ids = get_strongly_connected_components (G, species_ids)
+        r_blocks_species_ids = sccs_species_ids
+        Q = condensation(G, sccs_index)
+    else:
+        H =  mutual_r_reachability_graph (G, r)
+        r_sccs_index, r_sccs_species = r_strongly_connected_components (H, species_ids)
+        r_blocks_species_ids = r_sccs_species
+        Q =  r_proximity_graph (G, r_sccs_index)
+    #===========
+    #Each constant species is a separate block
+    complete_r_blocks_species_ids = r_blocks_species_ids
+    for y in constant_species:
+        complete_r_blocks_species_ids.append([y])
+    #===========
+    reactions_ids = [reaction.getId() for reaction in sbml_model.getListOfReactions()] 
+    #===========
+    complete_r_blocks_reactions_ids = []
+    for group_species in complete_r_blocks_species_ids:
+        group_reaction = []
+        for reaction in reactions_ids:
+            reactants = {reactant.getSpecies() for reactant in sbml_model.getReaction(reaction).getListOfReactants()}
+            products = {product.getSpecies() for product in sbml_model.getReaction(reaction).getListOfProducts()}
+            result_1 = any(species in reactants for species in group_species)
+            if result_1 and reaction not in list(set().union(*complete_r_blocks_reactions_ids)):
+                group_reaction.append(reaction)              
+            else:
+                result_2 = any(species in products for species in group_species)
+                if result_2 and reaction not in list(set().union(*complete_r_blocks_reactions_ids)):
+                   group_reaction.append(reaction)  
+        #-------                 
+        complete_r_blocks_reactions_ids.append(group_reaction)
+    #===========
+    complete_r_blocks_ids = [x + y for x, y in zip(complete_r_blocks_species_ids, complete_r_blocks_reactions_ids)]
+    #===========
+    return complete_r_blocks_ids, Q
+#=======================================================================================================================
+def decomposition_entropy_and_hierarchy (Q, species, r_blocks):
+    #---
+    if networkx.is_directed_acyclic_graph(Q):
+        hierarchy = 1
+    else:
+        _, hierarchy, _ = agony_scores(Q)
+    #---
+    P = [item/len(species) for item in [len(sublist) for sublist in r_blocks]]
+    E = sum([item * math.log2(item) for item in P])
+    entropy = - E
+    #---
+    return entropy, hierarchy
+#=======================================================================================================================
+def autonomous_pairs_species_cyclicQ (r_sccs_ids, r_sccs_scores):
     #--------
     m = min(r_sccs_scores)
     M = max(r_sccs_scores)
     #--------
-    AP_species_index = []
-    AP_species_names = []
+    AP_species_ids = []
     #--------
-    AP_i = []
     AP_ii = []
     for i in range(m, M+1):
         indices = [index for index, value in enumerate(r_sccs_scores) if value == i]
         for item in indices:
-            AP_i.extend(r_sccs_indices[item])
-            AP_ii.extend(r_sccs_names[item])
+            AP_ii.extend(r_sccs_ids[item])
         #--------
-        AP_species_index.append(AP_i.copy())
-        AP_species_names.append(AP_ii.copy())
+        AP_species_ids.append(AP_ii.copy())
     #--------
-    return AP_species_index, AP_species_names
+    return AP_species_ids
 #=======================================================================================================================
-def autonomous_pairs_species_acyclicQ (Q, species):
+def autonomous_pairs_species_acyclicQ (Q, species_ids):
     #--------
     Q1 = Q.copy()
     #--------
@@ -271,99 +312,21 @@ def autonomous_pairs_species_acyclicQ (Q, species):
         roots = [node for node in Q1.nodes if Q1.in_degree(node) == 0]
         roots_list = [list(map(int, component.strip('{}').split(', ')))for component in  roots]
     #--------
-    AP_species_names = [[species[val-1] for val in sublist] for sublist in AP_species_index]    
+    AP_species_ids = [[species_ids[val-1] for val in sublist] for sublist in AP_species_index]    
     #--------
-    return AP_species_index, AP_species_names
+    return AP_species_ids
 #=======================================================================================================================
-def autonomous_pairs_general (Q, species_names, r_sccs_species, r_sccs_index, model):
+def autonomous_pairs_general (Q, species_ids, r_sccs_ids):
     #===========
     is_acyclic = networkx.is_directed_acyclic_graph(Q)
     #===========
     if is_acyclic:
-        #print()
-        #print(f"{BOLD}\tQ is acyclic.{RESET}")
-        AP_species_index, AP_species_names = autonomous_pairs_species_acyclicQ (Q, species_names)
-        hierarchy = 1
+        AP_species_ids = autonomous_pairs_species_acyclicQ (Q, species_ids)
     else:
         #print()
         #print(f"{BOLD}\tQ is cyclic.{RESET}")
-        r_sccs_and_scores, hierarchy, r_sccs_scores = agony_scores(Q)
-        AP_species_index, AP_species_names = autonomous_pairs_species_cyclicQ (r_sccs_species, r_sccs_index, r_sccs_scores)
+        _, _, r_sccs_scores = agony_scores(Q)
+        AP_species_ids = autonomous_pairs_species_cyclicQ (r_sccs_ids, r_sccs_scores)
     #===========
-    species_name_to_id = {species.getName(): species.getId() for species in model.getListOfSpecies()}
-    #---
-    # Step 2: Replace species names with their IDs in complete_r_blocks_species
-    AP_species_ids = [
-        [species_name_to_id.get(species_name, species_name) for species_name in r_block] 
-        for r_block in AP_species_names
-    ]
-    #===========
-    return  AP_species_index, AP_species_names, AP_species_ids, hierarchy  
-#=======================================================================================================================
-def r_blocks (G, r, sbml_model):
-    #===========
-    species_names = [species.getName() for species in sbml_model.getListOfSpecies()]
-    #===========
-    if r == float('inf'):
-        sccs_index, sccs_species_names = get_strongly_connected_components (G, species_names)
-        r_blocks = sccs_index
-        r_blocks_species_names = sccs_species_names
-        Q = condensation(G, sccs_index)
-    else:
-        H =  mutual_r_reachability_graph (G, r)
-        r_sccs_index, r_sccs_species = r_strongly_connected_components (H, species_names)
-        r_blocks = r_sccs_index
-        r_blocks_species_names = r_sccs_species
-        Q =  r_proximity_graph (G, r_sccs_index)
-    #===========
-    #Constant species
-    constant_species = []
-    for i1 in range(len(species_names)):
-        species_constants_logical = {i: sbml_model.getSpecies(i).getConstant() for i in range(len(species_names))}
-        if species_constants_logical[i1]:
-            constant_species.append(species_names[i1])
-    #===========
-    #Each constant species is a separate block
-    complete_r_blocks_species_names = r_blocks_species_names
-    for y in constant_species:
-        complete_r_blocks_species_names.append([y])
-    #===========
-    species_name_to_id = {species.getName(): species.getId() for species in sbml_model.getListOfSpecies()}
-    #---
-    complete_r_blocks_species_ids = [[species_name_to_id.get(species_name, species_name) for species_name in r_block] for r_block in complete_r_blocks_species_names]
-    #===========
-    reactions_ids = [reaction.getId() for reaction in sbml_model.getListOfReactions()] 
-    #===========
-    complete_r_blocks_reactions_ids = []
-    #===========
-    for group_species in complete_r_blocks_species_ids:
-        group_reaction = []
-        for reaction in reactions_ids:
-            reactants = {reactant.getSpecies() for reactant in sbml_model.getReaction(reaction).getListOfReactants()}
-            products = {product.getSpecies() for product in sbml_model.getReaction(reaction).getListOfProducts()}
-            result_1 = any(species in reactants for species in group_species)
-            if result_1:
-                group_reaction.append(reaction)              
-            else:
-                result_2 = any(species in products for species in group_species)
-                if result_2:
-                   group_reaction.append(reaction)  
-        #-------                 
-        complete_r_blocks_reactions_ids.append(group_reaction)
-    #===========
-    reactions_name_to_id = {reaction.getName(): reaction.getId() for reaction in sbml_model.getListOfReactions()}
-    complete_r_blocks_reactions_names = [[reactions_name_to_id.get(species_name, species_name) for species_name in r_block]  for r_block in complete_r_blocks_reactions_ids]
-    #===========
-    complete_r_blocks_ids = [x + y for x, y in zip(complete_r_blocks_species_names, complete_r_blocks_reactions_ids)]
-    complete_r_blocks_names = [x + y for x, y in zip(complete_r_blocks_species_ids, complete_r_blocks_reactions_names)]
-    #===========
-    return r_blocks, r_blocks_species_names, complete_r_blocks_species_names, complete_r_blocks_species_ids, complete_r_blocks_reactions_ids, complete_r_blocks_reactions_names, complete_r_blocks_names, complete_r_blocks_ids, Q
-#=======================================================================================================================
-def decomposition_entropy (species, r_blocks):
-    #---
-    P = [item/len(species) for item in [len(sublist) for sublist in r_blocks]]
-    E = sum([item * math.log2(item) for item in P])
-    entropy = - E
-    #---
-    return entropy
+    return  AP_species_ids 
 #=======================================================================================================================

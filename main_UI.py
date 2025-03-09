@@ -1,4 +1,4 @@
-import numpy, os
+import os
 from tkinter import filedialog
 #---
 from lib.main_function import run_program

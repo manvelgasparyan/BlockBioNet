@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from lib.engine import (
     get_model, 
     interaction_graph,
-    decomposition_entropy,
-    autonomous_pairs_general,
-    r_blocks
+    r_blocks,
+    decomposition_entropy_and_hierarchy,
+    autonomous_pairs_general
 )
 #---
 from lib.gui import (
@@ -50,17 +50,18 @@ def run_program (file_path, file_name, directory_path, r, f):
         #Get interaction graph
         G = interaction_graph(sbml_model)
         #===========
-        r_blocks_ind, r_blocks_species_names,  complete_r_blocks_species_names, complete_r_blocks_species_ids, complete_r_blocks_reactions_ids, complete_r_blocks_reactions_names, complete_r_blocks_ids, complete_r_blocks_names, Q = r_blocks (G, r, sbml_model)
-        #===========
-        AP_species_index, AP_species_names, AP_species_ids, hierarchy = autonomous_pairs_general (Q, species_names, r_blocks_species_names, r_blocks_ind, sbml_model)
+        complete_r_blocks_ids, Q = r_blocks (G, r, sbml_model)
         #===========
         elapsed_time = time.perf_counter() - start_time
         print(f"{BOLD}\tExecution time: {RESET}{BLUE} {elapsed_time}{RESET}")
         #=========== 
-        entropy = decomposition_entropy (species_names, r_blocks_ind)
+        entropy, hierarchy = decomposition_entropy_and_hierarchy (Q, species_names, complete_r_blocks_ids)
         print(f"{BOLD}\tDecomposition entropy: {RESET}{BLUE} {entropy}{RESET}")
         #=========== 
-        save_to_files (sbml_model, directory_path, file_name, species_names, species_ids, complete_r_blocks_species_names, complete_r_blocks_species_ids, complete_r_blocks_reactions_ids, complete_r_blocks_reactions_names, complete_r_blocks_names, complete_r_blocks_ids, AP_species_index, AP_species_names, AP_species_ids, Q, G, entropy, hierarchy, r, elapsed_time, f)
+        AP_species_ids = autonomous_pairs_general (Q, species_ids, complete_r_blocks_ids)
+        print(f"{BOLD}\tAutonomous pairs: {RESET}{BLUE} {AP_species_ids}{RESET}")
+        #===========
+        save_to_files (sbml_model, directory_path, file_name, species_names, species_ids, complete_r_blocks_ids, Q, G, entropy, hierarchy, r, elapsed_time, f)
         #=========== 
         add_groups_sbml (sbml_document, directory_path, file_name, complete_r_blocks_ids, r)
         #===========      

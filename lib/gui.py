@@ -1,4 +1,4 @@
-import numpy, os, sys, tkinter, json, jsbeautifier, libsbml
+import numpy, os, sys, tkinter, json, libsbml
 from libsbml import *
 from tkinter import filedialog, Tk, simpledialog
 #=======================================================================================================================
@@ -57,12 +57,9 @@ def ask_reachability_radius():
         return None   
 #=======================================================================================================================
 def save_to_files (sbml_model, directory_path, file_name, species_names, species_ids,\
-                   complete_r_blocks_species_names, complete_r_blocks_species_ids, \
-                   complete_r_blocks_reactions_ids, complete_r_blocks_reactions_names, \
-                   complete_r_blocks_names, complete_r_blocks_ids, \
-                   AP_species_index, AP_species_names, AP_species_ids, \
+                   complete_r_blocks_ids, \
                    Q, G, entropy, hierarchy, r, elapsed_time, csv_file):
-    #------------
+    #------------  
     selected_outputs = {
                         "Species IDs": species_ids,
                         "Species names": species_names,
@@ -72,45 +69,26 @@ def save_to_files (sbml_model, directory_path, file_name, species_names, species
                                                                 "Target nodes": [species_names[i-1] for i in [item[1] for item in G.edges]]},},
                         "Quotient graph": {"Source nodes": [item[0] for item in Q.edges],
                                             "Target nodes": [item[1] for item in Q.edges]},
-                        "r-blocks": {#"Species indices": r_blocks_ind,
-                                     "Species IDs": complete_r_blocks_species_ids,
-                                     "Species names": complete_r_blocks_species_names,
-                                     "Reaction IDs": complete_r_blocks_reactions_ids,
-                                     "Reaction names": complete_r_blocks_reactions_names,
-                                     "Complete r-blocks (names)": complete_r_blocks_names,
-                                     "Complete r-blocks (IDs)": complete_r_blocks_ids},
-                        "Autonomous pairs": {#"Species indices": AP_species_index,
-                                             "Species IDs": AP_species_ids,
-                                             "Species names": AP_species_names},
+                        "List of r-blocks": complete_r_blocks_ids,
                         "Entropy": entropy,
                         "Hierarchy": hierarchy
                         }
     #------------
-    options = jsbeautifier.default_options()
-    options.indent_size = 2
-    #---
-    with open(os.path.join(directory_path, str(file_name) + "_r=" + str(r) + ".json"), "w", encoding='utf-8') as file:
+    with open(os.path.join(directory_path, str(file_name) + "_r" + str(r) + ".json"), "w", encoding='utf-8') as file:
             json_string = json.dumps(selected_outputs, indent=None)
             formatted_json = json_string.replace('"Interaction graph"', '\n\n "Interaction graph"')
             formatted_json= formatted_json.replace('"Quotient graph"', '\n\n "Quotient graph"')
             formatted_json= formatted_json.replace('"Source nodes"', '\n               "Source nodes"')
             formatted_json= formatted_json.replace('"Target nodes"', '\n               "Target nodes"')
-            formatted_json= formatted_json.replace('"Autonomous pairs"', '\n\n "Autonomous pairs"')
             formatted_json= formatted_json.replace('"Entropy"', '\n\n "Entropy"')
+            formatted_json= formatted_json.replace('"Species names"', '\n\n "Species names"')
+            formatted_json= formatted_json.replace('"Species IDs"', '\n\n "Species IDs"')
             formatted_json= formatted_json.replace('"Hierarchy"', '\n\n "Hierarchy"')
-            formatted_json= formatted_json.replace(f"{hierarchy}", f"{hierarchy}\n")
-            formatted_json= formatted_json.replace('"r-blocks"', '\n\n "r-blocks"')
-            formatted_json= formatted_json.replace('"Species indices"', '\n          "Species indices"')
-            formatted_json= formatted_json.replace('"Species IDs"', '\n          "Species IDs"')
-            formatted_json= formatted_json.replace('"Species names"', '\n          "Species names"')
-            formatted_json= formatted_json.replace('"Reaction IDs"', '\n          "Reaction IDs"')
-            formatted_json= formatted_json.replace('"Reaction names"', '\n          "Reaction names"')
-            formatted_json= formatted_json.replace('"Complete r-blocks (IDs)"', '\n          "Complete r-blocks (IDs)"')
-            formatted_json= formatted_json.replace('"Complete r-blocks (names)"', '\n          "Complete r-blocks (names)"')
+            formatted_json= formatted_json.replace('"List of r-blocks"', '\n\n "List of r-blocks"')
             file.write(formatted_json)
     #---
     os.makedirs(directory_path, exist_ok=True)
-    csv_file.write(f"{file_name},{len(species_names)},{len(sbml_model.getListOfReactions())},{len(G.edges)},{len(Q.nodes)}, {entropy}, {hierarchy}, {len(AP_species_index)}, {elapsed_time}\n")
+    csv_file.write(f"{file_name},{len(species_names)},{len(sbml_model.getListOfReactions())},{len(G.edges)},{len(Q.nodes)}, {entropy}, {hierarchy}, {elapsed_time}\n")
     #------------
     readme_text = f"The current folder contains the results of the automatic hierarchical decomposition of Biomodels for the selected reachability radius r={r}. " + \
                     "These results are generated from the executed codes. For each selected Biomodel (provided as an SBML file), the folder contains four files in various formats, as outlined below: \n\n" + \
@@ -166,7 +144,7 @@ def add_groups_sbml (sbml_document, directory_path, file_name, complete_r_block_
                     member = group.createMember()
                     member.setIdRef(item)
         #------------
-        writeSBML(sbml_document,f"{directory_path}/{file_name}_decomposition_r={r}.xml")
+        writeSBML(sbml_document,f"{directory_path}/{file_name}_decomposition_r{r}.xml")
         #------------
         return
 #=======================================================================================================================
