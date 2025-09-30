@@ -230,7 +230,8 @@ def agony_scores(Q):
     #Rank the scores and the blocks based on their scores
     r_sccs_scores = list([value for value in r_sccs_and_scores.values()])
     #---
-    return r_sccs_and_scores, hierarchy, r_sccs_scores
+    ranks = {u:Q1.nodes[u]['rank'] for u in Q1.nodes()}
+    return r_sccs_and_scores, hierarchy, r_sccs_scores, ranks #Q1 is the labeled graph with the rank of each node
 #=======================================================================================================================
 def autonomous_pairs_species_cyclicQ (r_sccs_names, r_sccs_indices, r_sccs_scores):
     #--------
@@ -287,7 +288,7 @@ def autonomous_pairs_general (Q, species_names, r_sccs_species, r_sccs_index, mo
     else:
         #print()
         #print(f"{BOLD}\tQ is cyclic.{RESET}")
-        r_sccs_and_scores, hierarchy, r_sccs_scores = agony_scores(Q)
+        r_sccs_and_scores, hierarchy, r_sccs_scores, ranks = agony_scores(Q)
         AP_species_index, AP_species_names = autonomous_pairs_species_cyclicQ (r_sccs_species, r_sccs_index, r_sccs_scores)
     #===========
     species_name_to_id = {species.getName(): species.getId() for species in model.getListOfSpecies()}
@@ -298,7 +299,7 @@ def autonomous_pairs_general (Q, species_names, r_sccs_species, r_sccs_index, mo
         for r_block in AP_species_names
     ]
     #===========
-    return  AP_species_index, AP_species_names, AP_species_ids, hierarchy  
+    return  AP_species_index, AP_species_names, AP_species_ids, hierarchy, ranks
 #=======================================================================================================================
 def r_blocks (G, r, sbml_model):
     #===========

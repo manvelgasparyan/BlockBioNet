@@ -5,14 +5,16 @@ let
 	      pip
 	      numpy
 	      matplotlib
+	      libsbml
+	      jsbeautifier
 	      networkx];
   libsbmlCustom = pkgs.libsbml.overrideAttrs (oldAttrs: {
     cmakeFlags = (oldAttrs.cmakeFlags or []) ++ [
-		      #"-DWITH_GROUPS=ON"
-		      #"-DWITH_COMP=ON"
-		      #"-DWITH_FBC=ON"
-		      #"-DWITH_LAYOUT=ON"
-			"-DWITH_STABLE_PACKAGES=ON"
+		      "-DWITH_GROUPS=ON"
+		      "-DWITH_COMP=ON"
+		      "-DWITH_FBC=ON"
+		      "-DWITH_LAYOUT=ON"
+		"-DWITH_STABLE_PACKAGES=ON"
 		    ];
      #withPython = true;
   });
@@ -22,7 +24,9 @@ in pkgs.mkShell {
     pkgs.python3
     pkgs.libxml2
     pkgs.libz
-    #mylibsbml
+    pkgs.stdenv.cc.cc.lib
+    #pkgs.libsbml
+    libsbmlCustom
   ] ++ pkgs_list;
   shellHook = ''
     # Tells pip to put packages into $PIP_PREFIX instead of the usual locations.
