@@ -349,8 +349,8 @@ def r_blocks (G, r, sbml_model):
     reactions_name_to_id = {reaction.getName(): reaction.getId() for reaction in sbml_model.getListOfReactions()}
     complete_r_blocks_reactions_names = [[reactions_name_to_id.get(species_name, species_name) for species_name in r_block]  for r_block in complete_r_blocks_reactions_ids]
     #===========
-    complete_r_blocks_ids = [x + y for x, y in zip(complete_r_blocks_species_names, complete_r_blocks_reactions_ids)]
-    complete_r_blocks_names = [x + y for x, y in zip(complete_r_blocks_species_ids, complete_r_blocks_reactions_names)]
+    complete_r_blocks_ids = [x + y for x, y in zip(complete_r_blocks_species_ids, complete_r_blocks_reactions_ids)]
+    complete_r_blocks_names = [x + y for x, y in zip(complete_r_blocks_species_names, complete_r_blocks_reactions_names)]
     #===========
     return r_blocks, r_blocks_species_names, complete_r_blocks_species_names, complete_r_blocks_species_ids, complete_r_blocks_reactions_ids, complete_r_blocks_reactions_names, complete_r_blocks_names, complete_r_blocks_ids, Q
 #=======================================================================================================================
